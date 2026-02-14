@@ -19,6 +19,12 @@ load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 MINIAPP_URL = os.getenv("MINIAPP_URL")
 
+if not TOKEN:
+    raise RuntimeError("BOT_TOKEN не задан в переменных окружения")
+
+if not MINIAPP_URL:
+    raise RuntimeError("MINIAPP_URL не задан в переменных окружения")
+
 DB = "tasks.db"
 
 # ========================================
@@ -44,53 +50,7 @@ def init_db():
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY,
                 username TEXT,
-                phone TEXT,
-                step INTEGER DEFAULT 0
-            )
-        ''')
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS tasks (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT,
-                description TEXT,
-                status TEXT DEFAULT 'Backlog',
-                created_by INTEGER
-            )
-        ''')
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS comments (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                task_id INTEGER,
-                user_id INTEGER,
-                content TEXT,
-                FOREIGN KEY(task_id) REFERENCES tasks(id)
-            )
-        ''')
-        conn.commit()
-
-init_db()
-
-# ========================================
-# Функция для получения соединения
-# ========================================
-def get_db_connection():
-    return sqlite3.connect(DB, check_same_thread=False)
-
-# ========================================
-# /start
-# ========================================
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute('SELECT step, phone FROM users WHERE id=?', (user.id,))
-        row = cursor.fetchone()
-
-        if row:
-            step, phone = row
-            if step == 0 or not phone:
-                await update.message.reply_text(
-                    "Для регистрации нажмите кнопку: Поделиться",
+@@ -94,50 +100,57 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     reply_markup=phone_btn
                 )
             else:
@@ -115,6 +75,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
     contact = update.message.contact
     user = update.effective_user
+
+    if not contact or contact.user_id != user.id:
+        await update.message.reply_text(
+            "Пожалуйста, отправьте ваш собственный контакт через кнопку ниже.",
+            reply_markup=phone_btn
+        )
+        return
 
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -141,35 +108,3 @@ async def contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ========================================
 async def other(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute('SELECT step, phone FROM users WHERE id=?', (user.id,))
-        row = cursor.fetchone()
-        if row:
-            step, phone = row
-            if step >= 1 and phone:
-                await update.message.reply_text(
-                    "Продолжим с MiniApp:",
-                    reply_markup=miniapp_button()
-                )
-            else:
-                await update.message.reply_text(
-                    "Сначала нажми кнопку выше ☝️",
-                    reply_markup=phone_btn
-                )
-        else:
-            await update.message.reply_text(
-                "Сначала нажми кнопку выше ☝️",
-                reply_markup=phone_btn
-            )
-
-# ========================================
-# Настройка бота
-# ========================================
-app = ApplicationBuilder().token(TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.CONTACT, contact))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, other))
-
-print("✅ Бот готов")
-app.run_polling()

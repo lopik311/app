@@ -1,8 +1,47 @@
 from flask import Flask, request, jsonify, render_template
+import hashlib
+import hmac
+import os
 import sqlite3
+from urllib.parse import parse_qsl
 
 app = Flask(__name__)
 DB = "tasks.db"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+ADMIN_USER_ID = os.getenv("ADMIN_USER_ID", "6821628014")
+
+
+def get_telegram_user_id():
+    init_data = request.headers.get("X-Telegram-Init-Data", "")
+    if not init_data:
+        raise ValueError("Отсутствуют Telegram initData")
+
+    data = dict(parse_qsl(init_data, keep_blank_values=True))
+    received_hash = data.pop("hash", None)
+    if not received_hash:
+        raise ValueError("Отсутствует hash в initData")
+
+    if not BOT_TOKEN:
+        raise ValueError("BOT_TOKEN не настроен на сервере")
+
+    data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(data.items()))
+    secret_key = hmac.new(b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256).digest()
+    expected_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+
+    if not hmac.compare_digest(expected_hash, received_hash):
+        raise ValueError("Неверная подпись initData")
+
+    user_raw = data.get("user")
+    if not user_raw:
+        raise ValueError("Не найден пользователь в initData")
+
+    import json
+    user = json.loads(user_raw)
+    user_id = user.get("id")
+    if not user_id:
+        raise ValueError("Не найден user.id в initData")
+
+    return str(user_id)
 
 # ===== Создание таблиц =====
 conn = sqlite3.connect(DB)
@@ -28,7 +67,7 @@ CREATE TABLE IF NOT EXISTS comments (
 )
 """)
 conn.commit()
-conn.close()
+@@ -32,83 +71,95 @@ conn.close()
 
 # ===== Главная страница =====
 @app.route("/")
@@ -57,6 +96,13 @@ def add_task():
     data = request.json
     user_id = data.get("user_id")
     if str(user_id) != "6821628014":
+    try:
+        user_id = get_telegram_user_id()
+    except ValueError as error:
+        return jsonify({"status": "error", "msg": str(error)}), 401
+
+    data = request.json or {}
+    if user_id != ADMIN_USER_ID:
         return jsonify({"status": "error", "msg": "Только админ может создавать задачи"}), 403
 
     conn = sqlite3.connect(DB)
@@ -73,6 +119,13 @@ def update_task_status(task_id):
     data = request.json
     user_id = data.get("user_id")
     if str(user_id) != "6821628014":
+    try:
+        user_id = get_telegram_user_id()
+    except ValueError as error:
+        return jsonify({"status": "error", "msg": str(error)}), 401
+
+    data = request.json or {}
+    if user_id != ADMIN_USER_ID:
         return jsonify({"status": "error", "msg": "Только админ может менять статус"}), 403
 
     new_status = data.get("status")
@@ -91,6 +144,12 @@ def update_task_status(task_id):
 def add_comment(task_id):
     data = request.json
     user_id = data.get("user_id")
+    try:
+        user_id = get_telegram_user_id()
+    except ValueError as error:
+        return jsonify({"status": "error", "msg": str(error)}), 401
+
+    data = request.json or {}
     content = data.get("content")
     conn = sqlite3.connect(DB)
     c = conn.cursor()

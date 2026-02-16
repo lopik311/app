@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-minicrm}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ../apps/backend
+    restart: unless-stopped
+    environment:
+      DB_URL: ${DB_URL:-postgresql+psycopg://postgres:postgres@db:5432/minicrm}
+      BOT_TOKEN: ${BOT_TOKEN:-}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
+      WEBAPP_URL: ${WEBAPP_URL:-http://localhost:3000/webapp}
+      JWT_SECRET: ${JWT_SECRET:-change-me}
+      JWT_EXP_MINUTES: ${JWT_EXP_MINUTES:-120}
+      CONSENT_VERSION: ${CONSENT_VERSION:-v1}
+      TELEGRAM_INITDATA_TTL_SECONDS: ${TELEGRAM_INITDATA_TTL_SECONDS:-3600}
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ../apps/frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  pg_data:

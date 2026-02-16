@@ -1,0 +1,93 @@
+:root {
+  --bg: #f2f5f7;
+  --panel: #ffffff;
+  --text: #101418;
+  --muted: #5f6b76;
+  --accent: #0f766e;
+  --accent-soft: #ccfbf1;
+  --danger: #b91c1c;
+  --border: #d4dbe2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 20% 0%, #e6f7f4 0%, var(--bg) 50%);
+  color: var(--text);
+  font-family: "Segoe UI", "Noto Sans", sans-serif;
+}
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.grid {
+  display: grid;
+  gap: 12px;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.btn.secondary {
+  background: #334155;
+}
+
+.input, .select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: #fff;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--accent-soft);
+  color: #0f4c45;
+}

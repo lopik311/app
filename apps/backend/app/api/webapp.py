@@ -25,13 +25,13 @@ def me(client: Client = Depends(get_webapp_client)):
 
 @router.get("/directions")
 def list_directions(db: Session = Depends(get_db)):
-    rows = db.query(Direction).filter(Direction.active.is_(True)).order_by(Direction.name).all()
+    rows = db.query(Direction).order_by(Direction.name).all()
     return [{"id": r.id, "name": r.name} for r in rows]
 
 
 @router.get("/delivery-slots")
 def list_slots(direction_id: int | None = None, db: Session = Depends(get_db)):
-    q = db.query(DeliverySlot).filter(DeliverySlot.active.is_(True))
+    q = db.query(DeliverySlot)
     if direction_id:
         q = q.filter((DeliverySlot.direction_id == direction_id) | (DeliverySlot.direction_id.is_(None)))
     rows = q.order_by(DeliverySlot.date).all()
@@ -39,7 +39,7 @@ def list_slots(direction_id: int | None = None, db: Session = Depends(get_db)):
         {
             "id": s.id,
             "direction_id": s.direction_id,
-            "label": f"{s.date} {s.time_from or ''}-{s.time_to or ''}".strip(),
+            "label": str(s.date),
         }
         for s in rows
     ]
@@ -76,8 +76,8 @@ def my_requests(client: Client = Depends(get_webapp_client), db: Session = Depen
 
 @router.post("/requests")
 def create_request(payload: RequestCreate, client: Client = Depends(get_webapp_client), db: Session = Depends(get_db)):
-    direction = db.query(Direction).filter(Direction.id == payload.direction_id, Direction.active.is_(True)).first()
-    slot = db.query(DeliverySlot).filter(DeliverySlot.id == payload.delivery_slot_id, DeliverySlot.active.is_(True)).first()
+    direction = db.query(Direction).filter(Direction.id == payload.direction_id).first()
+    slot = db.query(DeliverySlot).filter(DeliverySlot.id == payload.delivery_slot_id).first()
     if not direction or not slot:
         raise HTTPException(status_code=400, detail="invalid direction or slot")
 
@@ -120,7 +120,7 @@ def request_detail(request_id: int, client: Client = Depends(get_webapp_client),
         "id": req.id,
         "request_number": req.request_number,
         "direction": direction.name if direction else None,
-        "delivery_slot": f"{slot.date} {slot.time_from or ''}-{slot.time_to or ''}" if slot else None,
+        "delivery_slot": str(slot.date) if slot else None,
         "boxes_count": req.boxes_count,
         "weight_kg": float(req.weight_kg),
         "volume_m3": float(req.volume_m3),

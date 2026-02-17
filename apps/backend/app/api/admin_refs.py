@@ -15,12 +15,12 @@ router = APIRouter(prefix="/api/admin", tags=["admin-refs"])
 @router.get("/directions")
 def list_directions(db: Session = Depends(get_db), _=Depends(get_current_manager)):
     rows = db.query(Direction).order_by(Direction.id.desc()).all()
-    return [{"id": d.id, "name": d.name, "active": d.active} for d in rows]
+    return [{"id": d.id, "name": d.name} for d in rows]
 
 
 @router.post("/directions")
 def create_direction(payload: DirectionIn, db: Session = Depends(get_db), _=Depends(get_current_manager)):
-    row = Direction(name=payload.name, active=payload.active)
+    row = Direction(name=payload.name)
     db.add(row)
     db.commit()
     db.refresh(row)
@@ -33,7 +33,6 @@ def patch_direction(direction_id: int, payload: DirectionIn, db: Session = Depen
     if not row:
         raise HTTPException(status_code=404, detail="not found")
     row.name = payload.name
-    row.active = payload.active
     db.commit()
     return {"ok": True}
 
@@ -46,9 +45,6 @@ def list_slots(db: Session = Depends(get_db), _=Depends(get_current_manager)):
             "id": s.id,
             "direction_id": s.direction_id,
             "date": str(s.date),
-            "time_from": str(s.time_from) if s.time_from else None,
-            "time_to": str(s.time_to) if s.time_to else None,
-            "active": s.active,
         }
         for s in rows
     ]
@@ -59,9 +55,6 @@ def create_slot(payload: DeliverySlotIn, db: Session = Depends(get_db), _=Depend
     slot = DeliverySlot(
         direction_id=payload.direction_id,
         date=datetime.strptime(payload.date, "%Y-%m-%d").date(),
-        time_from=datetime.strptime(payload.time_from, "%H:%M").time() if payload.time_from else None,
-        time_to=datetime.strptime(payload.time_to, "%H:%M").time() if payload.time_to else None,
-        active=payload.active,
     )
     db.add(slot)
     db.commit()
@@ -76,8 +69,15 @@ def patch_slot(slot_id: int, payload: DeliverySlotIn, db: Session = Depends(get_
         raise HTTPException(status_code=404, detail="not found")
     slot.direction_id = payload.direction_id
     slot.date = datetime.strptime(payload.date, "%Y-%m-%d").date()
-    slot.time_from = datetime.strptime(payload.time_from, "%H:%M").time() if payload.time_from else None
-    slot.time_to = datetime.strptime(payload.time_to, "%H:%M").time() if payload.time_to else None
-    slot.active = payload.active
+    db.commit()
+    return {"ok": True}
+
+
+@router.delete("/delivery-slots/{slot_id}")
+def delete_slot(slot_id: int, db: Session = Depends(get_db), _=Depends(get_current_manager)):
+    slot = db.query(DeliverySlot).filter(DeliverySlot.id == slot_id).first()
+    if not slot:
+        raise HTTPException(status_code=404, detail="not found")
+    db.delete(slot)
     db.commit()
     return {"ok": True}

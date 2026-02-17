@@ -5,15 +5,14 @@ import { useEffect, useMemo, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { apiGet, apiSend } from "@/lib/api";
 
-type Direction = { id: number; name: string; active: boolean };
+type Direction = { id: number; name: string };
 type Slot = {
   id: number;
   direction_id: number | null;
   date: string;
-  time_from?: string | null;
-  time_to?: string | null;
-  active: boolean;
 };
+
+type SlotSort = "direction_asc" | "direction_desc" | "date_asc" | "date_desc";
 
 export default function StaffDirectionsPage() {
   const [directions, setDirections] = useState<Direction[]>([]);
@@ -23,6 +22,7 @@ export default function StaffDirectionsPage() {
 
   const [slotDirectionId, setSlotDirectionId] = useState<string>("");
   const [slotDate, setSlotDate] = useState("");
+  const [slotSort, setSlotSort] = useState<SlotSort>("date_desc");
 
   async function load() {
     try {
@@ -44,17 +44,12 @@ export default function StaffDirectionsPage() {
 
   async function createDirection() {
     try {
-      await apiSend("/api/admin/directions", "POST", { name, active: true }, { credentials: "include" });
+      if (!name.trim()) {
+        setError("Введите название направления.");
+        return;
+      }
+      await apiSend("/api/admin/directions", "POST", { name: name.trim() }, { credentials: "include" });
       setName("");
-      await load();
-    } catch (e) {
-      setError(String(e));
-    }
-  }
-
-  async function toggleDirection(row: Direction) {
-    try {
-      await apiSend(`/api/admin/directions/${row.id}`, "PATCH", { name: row.name, active: !row.active }, { credentials: "include" });
       await load();
     } catch (e) {
       setError(String(e));
@@ -74,9 +69,6 @@ export default function StaffDirectionsPage() {
         {
           direction_id: slotDirectionId ? Number(slotDirectionId) : null,
           date: slotDate,
-          time_from: null,
-          time_to: null,
-          active: true,
         },
         { credentials: "include" },
       );
@@ -88,20 +80,10 @@ export default function StaffDirectionsPage() {
     }
   }
 
-  async function toggleSlot(row: Slot) {
+  async function deleteSlot(slotId: number) {
     try {
-      await apiSend(
-        `/api/admin/delivery-slots/${row.id}`,
-        "PATCH",
-        {
-          direction_id: row.direction_id,
-          date: row.date,
-          time_from: row.time_from || null,
-          time_to: row.time_to || null,
-          active: !row.active,
-        },
-        { credentials: "include" },
-      );
+      setError("");
+      await apiSend(`/api/admin/delivery-slots/${slotId}`, "DELETE", undefined, { credentials: "include" });
       await load();
     } catch (e) {
       setError(String(e));
@@ -112,43 +94,31 @@ export default function StaffDirectionsPage() {
     return new Map<number, string>(directions.map((d) => [d.id, d.name]));
   }, [directions]);
 
+  const sortedSlots = useMemo(() => {
+    const arr = [...slots];
+    arr.sort((a, b) => {
+      const aDirection = a.direction_id ? directionMap.get(a.direction_id) || `ID ${a.direction_id}` : "Без привязки";
+      const bDirection = b.direction_id ? directionMap.get(b.direction_id) || `ID ${b.direction_id}` : "Без привязки";
+      if (slotSort === "direction_asc") return aDirection.localeCompare(bDirection, "ru");
+      if (slotSort === "direction_desc") return bDirection.localeCompare(aDirection, "ru");
+      if (slotSort === "date_asc") return a.date.localeCompare(b.date);
+      return b.date.localeCompare(a.date);
+    });
+    return arr;
+  }, [slots, slotSort, directionMap]);
+
+  function toggleDirectionSort() {
+    setSlotSort((prev) => (prev === "direction_asc" ? "direction_desc" : "direction_asc"));
+  }
+
+  function toggleDateSort() {
+    setSlotSort((prev) => (prev === "date_asc" ? "date_desc" : "date_asc"));
+  }
+
   return (
     <div className="grid">
       <h3 style={{ margin: 0 }}>Направления и слоты доставки</h3>
       {error ? <div className="card" style={{ color: "var(--danger)" }}>{error}</div> : null}
-
-      <div className="card grid">
-        <h4 style={{ margin: 0 }}>Добавить направление</h4>
-        <div className="row">
-          <input className="input" style={{ maxWidth: 360 }} placeholder="Новое направление" value={name} onChange={(e) => setName(e.target.value)} />
-          <button className="btn" onClick={createDirection}>Добавить</button>
-        </div>
-      </div>
-
-      <div className="card table-wrap">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Название</TableHead>
-              <TableHead>Активно</TableHead>
-              <TableHead>Действие</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {directions.map((r) => (
-              <TableRow key={r.id}>
-                <TableCell>{r.id}</TableCell>
-                <TableCell>{r.name}</TableCell>
-                <TableCell>{String(r.active)}</TableCell>
-                <TableCell>
-                  <button className="btn secondary" onClick={() => toggleDirection(r)}>Переключить</button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
 
       <div className="card grid">
         <h4 style={{ margin: 0 }}>Добавить слот доставки</h4>
@@ -157,7 +127,7 @@ export default function StaffDirectionsPage() {
             <label>Направление</label>
             <select className="select" value={slotDirectionId} onChange={(e) => setSlotDirectionId(e.target.value)}>
               <option value="">Без привязки</option>
-              {directions.filter((d) => d.active).map((d) => (
+              {directions.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.name}
                 </option>
@@ -177,24 +147,57 @@ export default function StaffDirectionsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>ID</TableHead>
-              <TableHead>Направление</TableHead>
-              <TableHead>Дата доставки (слот)</TableHead>
-              <TableHead>Время</TableHead>
-              <TableHead>Активно</TableHead>
-              <TableHead>Действие</TableHead>
+              <TableHead>
+                Направление{" "}
+                <button className="btn secondary" style={{ padding: "4px 8px" }} onClick={toggleDirectionSort}>
+                  Сорт
+                </button>
+              </TableHead>
+              <TableHead>
+                Дата доставки{" "}
+                <button className="btn secondary" style={{ padding: "4px 8px" }} onClick={toggleDateSort}>
+                  Сорт
+                </button>
+              </TableHead>
+              <TableHead>Удалить</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {slots.map((s) => (
+            {sortedSlots.map((s) => (
               <TableRow key={s.id}>
                 <TableCell>{s.id}</TableCell>
                 <TableCell>{s.direction_id ? directionMap.get(s.direction_id) || `ID ${s.direction_id}` : "Без привязки"}</TableCell>
                 <TableCell>{s.date}</TableCell>
-                <TableCell>{(s.time_from || "--:--") + " - " + (s.time_to || "--:--")}</TableCell>
-                <TableCell>{String(s.active)}</TableCell>
                 <TableCell>
-                  <button className="btn secondary" onClick={() => toggleSlot(s)}>Переключить</button>
+                  <button className="btn secondary" onClick={() => deleteSlot(s.id)}>Удалить</button>
                 </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="card grid">
+        <h4 style={{ margin: 0 }}>Добавить направление</h4>
+        <div className="row">
+          <input className="input" style={{ maxWidth: 360 }} placeholder="Новое направление" value={name} onChange={(e) => setName(e.target.value)} />
+          <button className="btn" onClick={createDirection}>Добавить</button>
+        </div>
+      </div>
+
+      <div className="card table-wrap">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Название</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {directions.map((r) => (
+              <TableRow key={r.id}>
+                <TableCell>{r.id}</TableCell>
+                <TableCell>{r.name}</TableCell>
               </TableRow>
             ))}
           </TableBody>

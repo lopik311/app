@@ -32,6 +32,10 @@ def startup() -> None:
     Base.metadata.create_all(bind=engine)
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE requests ADD COLUMN IF NOT EXISTS comment TEXT"))
+        conn.execute(text("ALTER TABLE directions DROP COLUMN IF EXISTS active"))
+        conn.execute(text("ALTER TABLE delivery_slots DROP COLUMN IF EXISTS active"))
+        conn.execute(text("ALTER TABLE delivery_slots DROP COLUMN IF EXISTS time_from"))
+        conn.execute(text("ALTER TABLE delivery_slots DROP COLUMN IF EXISTS time_to"))
         if engine.dialect.name == "postgresql":
             for value in ["NEW", "WAREHOUSE", "SHIPPED", "DELIVERED", "PAID"]:
                 conn.execute(text(f"ALTER TYPE requeststatus ADD VALUE IF NOT EXISTS '{value}'"))

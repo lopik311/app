@@ -6,8 +6,8 @@ import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { apiGet, apiSend } from "@/lib/api";
 
-type Direction = { id: number; name: string; active: boolean };
-type Slot = { id: number; direction_id: number | null; date: string; time_from?: string; time_to?: string; active: boolean };
+type Direction = { id: number; name: string };
+type Slot = { id: number; direction_id: number | null; date: string };
 
 export default function AdminRefsPage() {
   const [directions, setDirections] = useState<Direction[]>([]);
@@ -34,17 +34,8 @@ export default function AdminRefsPage() {
 
   async function createDirection() {
     try {
-      await apiSend("/api/admin/directions", "POST", { name: directionName, active: true }, { credentials: "include" });
+      await apiSend("/api/admin/directions", "POST", { name: directionName }, { credentials: "include" });
       setDirectionName("");
-      await load();
-    } catch (e) {
-      setError(String(e));
-    }
-  }
-
-  async function toggleDirection(d: Direction) {
-    try {
-      await apiSend(`/api/admin/directions/${d.id}`, "PATCH", { name: d.name, active: !d.active }, { credentials: "include" });
       await load();
     } catch (e) {
       setError(String(e));
@@ -71,8 +62,6 @@ export default function AdminRefsPage() {
             <TableRow>
               <TableHead>ID</TableHead>
               <TableHead>Название</TableHead>
-              <TableHead>Активно</TableHead>
-              <TableHead>Действие</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -80,8 +69,6 @@ export default function AdminRefsPage() {
               <TableRow key={d.id}>
                 <TableCell>{d.id}</TableCell>
                 <TableCell>{d.name}</TableCell>
-                <TableCell>{String(d.active)}</TableCell>
-                <TableCell><button className="btn secondary" onClick={() => toggleDirection(d)}>Переключить</button></TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -96,8 +83,6 @@ export default function AdminRefsPage() {
               <TableHead>ID</TableHead>
               <TableHead>Direction ID</TableHead>
               <TableHead>Дата</TableHead>
-              <TableHead>Интервал</TableHead>
-              <TableHead>Активно</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -106,8 +91,6 @@ export default function AdminRefsPage() {
                 <TableCell>{s.id}</TableCell>
                 <TableCell>{s.direction_id ?? "-"}</TableCell>
                 <TableCell>{s.date}</TableCell>
-                <TableCell>{(s.time_from || "") + " - " + (s.time_to || "")}</TableCell>
-                <TableCell>{String(s.active)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

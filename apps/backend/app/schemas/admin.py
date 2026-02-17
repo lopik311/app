@@ -20,12 +20,8 @@ class RequestUpdateIn(BaseModel):
 
 class DirectionIn(BaseModel):
     name: str
-    active: bool = True
 
 
 class DeliverySlotIn(BaseModel):
     direction_id: int | None = None
     date: str
-    time_from: str | None = None
-    time_to: str | None = None
-    active: bool = True

@@ -111,7 +111,7 @@ export default function StaffRequestsPage() {
 
       {error ? <div className="card" style={{ color: "var(--danger)" }}>{error}</div> : null}
 
-      <div className="card table-wrap">
+      <div className="card table-wrap requests-table">
         <Table>
           <TableHeader>
             <TableRow>

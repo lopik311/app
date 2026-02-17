@@ -120,6 +120,14 @@ body {
   text-align: left;
 }
 
+.requests-table .table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.requests-table .table tbody tr:hover {
+  background-color: #eef3f7;
+}
+
 .badge {
   display: inline-block;
   border-radius: 999px;

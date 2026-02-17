@@ -37,6 +37,7 @@ def startup() -> None:
         conn.execute(text("ALTER TABLE delivery_slots DROP COLUMN IF EXISTS active"))
         conn.execute(text("ALTER TABLE delivery_slots DROP COLUMN IF EXISTS time_from"))
         conn.execute(text("ALTER TABLE delivery_slots DROP COLUMN IF EXISTS time_to"))
+        conn.execute(text("ALTER TABLE organizations ADD COLUMN IF NOT EXISTS contract TEXT"))
         if engine.dialect.name == "postgresql":
             for value in ["NEW", "WAREHOUSE", "SHIPPED", "DELIVERED", "PAID"]:
                 conn.execute(text(f"ALTER TYPE requeststatus ADD VALUE IF NOT EXISTS '{value}'"))

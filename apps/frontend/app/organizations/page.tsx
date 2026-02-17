@@ -25,6 +25,7 @@ type Organization = {
   correspondent_account: string | null;
   bank: string | null;
   director: string | null;
+  contract: string | null;
 };
 
 type FormState = {
@@ -39,6 +40,7 @@ type FormState = {
   correspondent_account: string;
   bank: string;
   director: string;
+  contract: string;
 };
 
 const emptyForm: FormState = {
@@ -53,12 +55,14 @@ const emptyForm: FormState = {
   correspondent_account: "",
   bank: "",
   director: "",
+  contract: "",
 };
 
 export default function OrganizationsPage() {
   const [rows, setRows] = useState<Organization[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState("");
 
   async function load() {
@@ -83,46 +87,61 @@ export default function OrganizationsPage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  async function createOrganization() {
+  async function saveOrganization() {
     try {
       if (!form.client_id || !form.name.trim()) {
         setError("Выберите контактное лицо и заполните наименование.");
         return;
       }
       setError("");
-      await apiSend(
-        "/api/admin/organizations",
-        "POST",
-        {
-          client_id: Number(form.client_id),
-          name: form.name.trim(),
-          inn: form.inn || null,
-          kpp: form.kpp || null,
-          ogrn: form.ogrn || null,
-          address: form.address || null,
-          settlement_account: form.settlement_account || null,
-          bik: form.bik || null,
-          correspondent_account: form.correspondent_account || null,
-          bank: form.bank || null,
-          director: form.director || null,
-        },
-        { credentials: "include" },
-      );
+      const payload = {
+        client_id: Number(form.client_id),
+        name: form.name.trim(),
+        inn: form.inn || null,
+        kpp: form.kpp || null,
+        ogrn: form.ogrn || null,
+        address: form.address || null,
+        settlement_account: form.settlement_account || null,
+        bik: form.bik || null,
+        correspondent_account: form.correspondent_account || null,
+        bank: form.bank || null,
+        director: form.director || null,
+        contract: form.contract || null,
+      };
+      if (editingId) {
+        await apiSend(`/api/admin/organizations/${editingId}`, "PATCH", payload, { credentials: "include" });
+      } else {
+        await apiSend("/api/admin/organizations", "POST", payload, { credentials: "include" });
+      }
       setForm(emptyForm);
+      setEditingId(null);
       await load();
     } catch (e) {
       setError(String(e));
     }
   }
 
-  async function deleteOrganization(id: number) {
-    try {
-      setError("");
-      await apiSend(`/api/admin/organizations/${id}`, "DELETE", undefined, { credentials: "include" });
-      await load();
-    } catch (e) {
-      setError(String(e));
-    }
+  function startEdit(row: Organization) {
+    setEditingId(row.id);
+    setForm({
+      client_id: String(row.client_id),
+      name: row.name || "",
+      inn: row.inn || "",
+      kpp: row.kpp || "",
+      ogrn: row.ogrn || "",
+      address: row.address || "",
+      settlement_account: row.settlement_account || "",
+      bik: row.bik || "",
+      correspondent_account: row.correspondent_account || "",
+      bank: row.bank || "",
+      director: row.director || "",
+      contract: row.contract || "",
+    });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm(emptyForm);
   }
 
   return (
@@ -184,8 +203,15 @@ export default function OrganizationsPage() {
             <label>Директор</label>
             <input className="input" value={form.director} onChange={(e) => setField("director", e.target.value)} />
           </div>
+          <div>
+            <label>Договор</label>
+            <input className="input" value={form.contract} onChange={(e) => setField("contract", e.target.value)} />
+          </div>
         </div>
-        <button className="btn" onClick={createOrganization}>Добавить</button>
+        <div className="row">
+          <button className="btn" onClick={saveOrganization}>{editingId ? "Сохранить изменения" : "Добавить"}</button>
+          {editingId ? <button className="btn secondary" onClick={cancelEdit}>Отмена</button> : null}
+        </div>
       </div>
 
       <div className="card table-wrap">
@@ -204,7 +230,8 @@ export default function OrganizationsPage() {
               <TableHead>Корсчет</TableHead>
               <TableHead>Банк</TableHead>
               <TableHead>Директор</TableHead>
-              <TableHead>Удалить</TableHead>
+              <TableHead>Договор</TableHead>
+              <TableHead>Изменить</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -222,10 +249,9 @@ export default function OrganizationsPage() {
                 <TableCell>{r.correspondent_account || "-"}</TableCell>
                 <TableCell>{r.bank || "-"}</TableCell>
                 <TableCell>{r.director || "-"}</TableCell>
+                <TableCell>{r.contract || "-"}</TableCell>
                 <TableCell>
-                  <button className="btn secondary" onClick={() => deleteOrganization(r.id)}>
-                    Удалить
-                  </button>
+                  <button className="btn secondary" onClick={() => startEdit(r)}>Изменить</button>
                 </TableCell>
               </TableRow>
             ))}

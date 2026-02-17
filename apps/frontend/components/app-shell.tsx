@@ -16,13 +16,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="row" style={{ justifyContent: "space-between", marginBottom: 16 }}>
         <h2 style={{ margin: 0 }}>Mini CRM</h2>
         <div className="topnav">
-          <Link href="/">Вход</Link>
           <Link href="/requests">Заявки</Link>
           <Link href="/organizations">Организации</Link>
           <Link href="/price">Прайс</Link>
           <Link href="/directions">Направления</Link>
-          <Link href="/payments">Оплаты</Link>
-          <Link href="/webapp">WebApp</Link>
+          <Link href="/payments">Банк</Link>
         </div>
       </div>
       {children}

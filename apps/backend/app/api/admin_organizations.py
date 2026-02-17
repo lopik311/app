@@ -33,6 +33,7 @@ def list_organizations(db: Session = Depends(get_db), _=Depends(get_current_mana
             "correspondent_account": org.correspondent_account,
             "bank": org.bank,
             "director": org.director,
+            "contract": org.contract,
         }
         for org, client in rows
     ]

@@ -39,3 +39,4 @@ class OrganizationIn(BaseModel):
     correspondent_account: str | None = None
     bank: str | None = None
     director: str | None = None
+    contract: str | None = None

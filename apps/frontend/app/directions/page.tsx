@@ -147,7 +147,7 @@ export default function StaffDirectionsPage() {
             <label>Дата доставки (слот)</label>
             <input className="input" type="date" value={slotDate} onChange={(e) => setSlotDate(e.target.value)} />
           </div>
-          <div style={{ width: "20%" }}>
+          <div style={{ width: "15%" }}>
             <button className="btn" style={{ width: "100%" }} onClick={createSlot}>Добавить слот</button>
           </div>
         </div>

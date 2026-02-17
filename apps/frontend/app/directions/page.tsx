@@ -115,15 +115,24 @@ export default function StaffDirectionsPage() {
     setSlotSort((prev) => (prev === "date_asc" ? "date_desc" : "date_asc"));
   }
 
+  const sortButtonStyle = {
+    marginLeft: 6,
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    fontSize: 14,
+    lineHeight: "14px",
+  } as const;
+
   return (
     <div className="grid">
-      <h3 style={{ margin: 0 }}>Направления и слоты доставки</h3>
+      <h3 style={{ margin: 0 }}>Справочник напрвлений</h3>
       {error ? <div className="card" style={{ color: "var(--danger)" }}>{error}</div> : null}
 
       <div className="card grid">
         <h4 style={{ margin: 0 }}>Добавить слот доставки</h4>
-        <div className="grid grid-2">
-          <div>
+        <div className="row" style={{ width: "100%", alignItems: "end" }}>
+          <div style={{ width: "40%" }}>
             <label>Направление</label>
             <select className="select" value={slotDirectionId} onChange={(e) => setSlotDirectionId(e.target.value)}>
               <option value="">Без привязки</option>
@@ -134,12 +143,14 @@ export default function StaffDirectionsPage() {
               ))}
             </select>
           </div>
-          <div>
+          <div style={{ width: "40%" }}>
             <label>Дата доставки (слот)</label>
             <input className="input" type="date" value={slotDate} onChange={(e) => setSlotDate(e.target.value)} />
           </div>
+          <div style={{ width: "20%" }}>
+            <button className="btn" style={{ width: "100%" }} onClick={createSlot}>Добавить слот</button>
+          </div>
         </div>
-        <button className="btn" onClick={createSlot}>Добавить слот</button>
       </div>
 
       <div className="card table-wrap">
@@ -148,16 +159,12 @@ export default function StaffDirectionsPage() {
             <TableRow>
               <TableHead>ID</TableHead>
               <TableHead>
-                Направление{" "}
-                <button className="btn secondary" style={{ padding: "4px 8px" }} onClick={toggleDirectionSort}>
-                  Сорт
-                </button>
+                Направление
+                <button style={sortButtonStyle} onClick={toggleDirectionSort}>↓↑</button>
               </TableHead>
               <TableHead>
-                Дата доставки{" "}
-                <button className="btn secondary" style={{ padding: "4px 8px" }} onClick={toggleDateSort}>
-                  Сорт
-                </button>
+                Дата доставки
+                <button style={sortButtonStyle} onClick={toggleDateSort}>↓↑</button>
               </TableHead>
               <TableHead>Удалить</TableHead>
             </TableRow>

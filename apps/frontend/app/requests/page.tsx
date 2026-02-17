@@ -10,8 +10,8 @@ import { apiGet, apiSend } from "@/lib/api";
 type RequestRow = {
   id: number;
   request_number: number;
-  telegram_id: number;
   username: string;
+  organization?: string | null;
   direction: string;
   delivery_date: string;
   boxes_count: number;
@@ -115,33 +115,33 @@ export default function StaffRequestsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Номер</TableHead>
-              <TableHead>Клиент</TableHead>
-              <TableHead>Направление</TableHead>
-              <TableHead>Дата выгрузки</TableHead>
-              <TableHead>Количество</TableHead>
-              <TableHead>Объем</TableHead>
-              <TableHead>Вес</TableHead>
-              <TableHead>Статус</TableHead>
-              <TableHead>Действие</TableHead>
+              <TableHead><div style={{ textAlign: "center" }}>Номер</div></TableHead>
+              <TableHead><div style={{ textAlign: "center" }}>Организация</div></TableHead>
+              <TableHead><div style={{ textAlign: "center" }}>Клиент</div></TableHead>
+              <TableHead><div style={{ textAlign: "center" }}>Направление</div></TableHead>
+              <TableHead><div style={{ textAlign: "center" }}>Дата выгрузки</div></TableHead>
+              <TableHead><div style={{ textAlign: "center" }}>Количество</div></TableHead>
+              <TableHead><div style={{ textAlign: "center" }}>Объем</div></TableHead>
+              <TableHead><div style={{ textAlign: "center" }}>Вес</div></TableHead>
+              <TableHead><div style={{ textAlign: "center" }}>Статус</div></TableHead>
+              <TableHead><div style={{ textAlign: "center" }}>Действие</div></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.map((r) => (
               <TableRow key={r.id}>
-                <TableCell>{r.request_number}</TableCell>
-                <TableCell>{r.telegram_id} / @{r.username || "-"}</TableCell>
-                <TableCell>{r.direction}</TableCell>
-                <TableCell>{r.delivery_date}</TableCell>
-                <TableCell>{r.boxes_count}</TableCell>
-                <TableCell>{r.volume_m3}</TableCell>
-                <TableCell>{r.weight_kg}</TableCell>
-                <TableCell><Badge>{statusLabel(r.status)}</Badge></TableCell>
-                <TableCell>
-                  <button className="btn secondary" onClick={() => openDialog(r.id)}>
-                    Открыть
-                  </button>
-                </TableCell>
+                <TableCell><div style={{ textAlign: "center" }}>{r.request_number}</div></TableCell>
+                <TableCell><div style={{ textAlign: "center" }}>{r.organization || "-"}</div></TableCell>
+                <TableCell><div style={{ textAlign: "center" }}>@{r.username || "-"}</div></TableCell>
+                <TableCell><div style={{ textAlign: "center" }}>{r.direction}</div></TableCell>
+                <TableCell><div style={{ textAlign: "center" }}>{r.delivery_date}</div></TableCell>
+                <TableCell><div style={{ textAlign: "center" }}>{r.boxes_count}</div></TableCell>
+                <TableCell><div style={{ textAlign: "center" }}>{r.volume_m3}</div></TableCell>
+                <TableCell><div style={{ textAlign: "center" }}>{r.weight_kg}</div></TableCell>
+                <TableCell><div style={{ textAlign: "center" }}><Badge>{statusLabel(r.status)}</Badge></div></TableCell>
+                <TableCell><div style={{ textAlign: "center" }}>
+                  <button className="btn secondary" onClick={() => openDialog(r.id)}>Открыть</button>
+                </div></TableCell>
               </TableRow>
             ))}
           </TableBody>

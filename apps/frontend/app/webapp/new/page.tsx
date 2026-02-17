@@ -20,7 +20,10 @@ export default function NewRequestPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const headers = { "X-Telegram-Init-Data": (window as any).Telegram?.WebApp?.initData || "" };
+    const tg = (window as any).Telegram?.WebApp;
+    tg?.ready?.();
+    tg?.expand?.();
+    const headers = { "X-Telegram-Init-Data": tg?.initData || "" };
     apiGet("/api/webapp/directions", { headers }).then(setDirections).catch((e) => setError(String(e)));
     apiGet("/api/webapp/delivery-slots", { headers }).then(setSlots).catch((e) => setError(String(e)));
   }, []);
@@ -33,7 +36,8 @@ export default function NewRequestPage() {
   async function submit() {
     try {
       setError("");
-      const headers = { "X-Telegram-Init-Data": (window as any).Telegram?.WebApp?.initData || "" };
+      const tg = (window as any).Telegram?.WebApp;
+      const headers = { "X-Telegram-Init-Data": tg?.initData || "" };
       await apiSend(
         "/api/webapp/requests",
         "POST",
@@ -57,7 +61,7 @@ export default function NewRequestPage() {
       <h3 style={{ margin: 0 }}>Новая заявка</h3>
       {error ? <div style={{ color: "var(--danger)" }}>{error}</div> : null}
       <div>
-        <label>Направление</label>
+        <label>Направление перевозки</label>
         <select className="select" value={directionId} onChange={(e) => setDirectionId(Number(e.target.value))}>
           <option value="">Выберите</option>
           {directions.map((d) => (
@@ -68,7 +72,7 @@ export default function NewRequestPage() {
         </select>
       </div>
       <div>
-        <label>Слот доставки</label>
+        <label>Дата/слот доставки</label>
         <select className="select" value={slotId} onChange={(e) => setSlotId(Number(e.target.value))}>
           <option value="">Выберите</option>
           {visibleSlots.map((s) => (
@@ -93,7 +97,7 @@ export default function NewRequestPage() {
         </div>
       </div>
       <button className="btn" onClick={submit}>
-        Создать
+        Создать заявку
       </button>
     </div>
   );

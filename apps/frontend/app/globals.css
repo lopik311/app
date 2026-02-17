@@ -75,6 +75,10 @@ body {
   border-collapse: collapse;
 }
 
+.table-wrap {
+  overflow-x: auto;
+}
+
 .table th,
 .table td {
   padding: 8px;
@@ -90,4 +94,43 @@ body {
   font-weight: 700;
   background: var(--accent-soft);
   color: #0f4c45;
+}
+
+.mobile-cards {
+  display: none;
+}
+
+.topnav {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .desktop-table {
+    display: none;
+  }
+
+  .mobile-cards {
+    display: grid;
+    gap: 10px;
+  }
+
+  .topnav a {
+    font-size: 14px;
+  }
 }

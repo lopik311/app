@@ -21,7 +21,10 @@ export default function WebAppRequestsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    apiGet("/api/webapp/requests", { headers: { "X-Telegram-Init-Data": (window as any).Telegram?.WebApp?.initData || "" } })
+    const tg = (window as any).Telegram?.WebApp;
+    tg?.ready?.();
+    tg?.expand?.();
+    apiGet("/api/webapp/requests", { headers: { "X-Telegram-Init-Data": tg?.initData || "" } })
       .then(setRows)
       .catch((e) => setError(String(e)));
   }, []);
@@ -34,8 +37,10 @@ export default function WebAppRequestsPage() {
           Новая заявка
         </Link>
       </div>
+
       {error ? <div className="card" style={{ color: "var(--danger)" }}>{error}</div> : null}
-      <div className="card">
+
+      <div className="card desktop-table table-wrap">
         <Table>
           <TableHeader>
             <TableRow>
@@ -55,13 +60,28 @@ export default function WebAppRequestsPage() {
                 <TableCell>{r.delivery_date}</TableCell>
                 <TableCell><Badge>{r.status}</Badge></TableCell>
                 <TableCell>{new Date(r.created_at).toLocaleString()}</TableCell>
-                <TableCell>
-                  <Link href={`/webapp/${r.id}`}>Карточка</Link>
-                </TableCell>
+                <TableCell><Link href={`/webapp/${r.id}`}>Карточка</Link></TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="mobile-cards">
+        {rows.map((r) => (
+          <div className="card" key={r.id}>
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <b>#{r.request_number}</b>
+              <Badge>{r.status}</Badge>
+            </div>
+            <div>Направление: {r.direction}</div>
+            <div>Доставка: {r.delivery_date}</div>
+            <div>Создано: {new Date(r.created_at).toLocaleString()}</div>
+            <div style={{ marginTop: 8 }}>
+              <Link href={`/webapp/${r.id}`}>Открыть карточку</Link>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

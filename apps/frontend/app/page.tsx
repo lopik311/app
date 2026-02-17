@@ -1,18 +1,36 @@
-import Link from "next/link";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+import { apiSend } from "@/lib/api";
 
 export default function Home() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  async function login() {
+    try {
+      setError("");
+      await apiSend("/api/admin/auth/login", "POST", { email, password }, { credentials: "include" });
+      router.push("/requests");
+    } catch (e) {
+      setError(String(e));
+    }
+  }
+
   return (
-    <div className="card">
-      <h3>Telegram WebApp mini-CRM</h3>
-      <p>Выберите режим работы.</p>
-      <div className="row">
-        <Link className="btn" href="/webapp">
-          WebApp клиента
-        </Link>
-        <Link className="btn secondary" href="/admin/login">
-          Кабинет менеджера
-        </Link>
-      </div>
+    <div className="card grid" style={{ maxWidth: 440 }}>
+      <h3 style={{ margin: 0 }}>Вход сотрудника</h3>
+      <p style={{ margin: 0, color: "var(--muted)" }}>Кабинет: заявки, прайс, направления, оплаты.</p>
+      {error ? <div style={{ color: "var(--danger)" }}>{error}</div> : null}
+      <input className="input" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <input className="input" placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <button className="btn" onClick={login}>
+        Войти
+      </button>
     </div>
   );
 }

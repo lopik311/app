@@ -14,9 +14,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="container">
           <div className="row" style={{ justifyContent: "space-between", marginBottom: 16 }}>
             <h2 style={{ margin: 0 }}>Mini CRM</h2>
-            <div className="row">
+            <div className="topnav">
+              <Link href="/">Вход</Link>
+              <Link href="/requests">Заявки</Link>
+              <Link href="/price">Прайс</Link>
+              <Link href="/directions">Направления</Link>
+              <Link href="/payments">Оплаты</Link>
               <Link href="/webapp">WebApp</Link>
-              <Link href="/admin/requests">Admin</Link>
             </div>
           </div>
           {children}

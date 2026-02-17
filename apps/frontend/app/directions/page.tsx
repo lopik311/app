@@ -23,8 +23,6 @@ export default function StaffDirectionsPage() {
 
   const [slotDirectionId, setSlotDirectionId] = useState<string>("");
   const [slotDate, setSlotDate] = useState("");
-  const [slotTimeFrom, setSlotTimeFrom] = useState("");
-  const [slotTimeTo, setSlotTimeTo] = useState("");
 
   async function load() {
     try {
@@ -76,16 +74,14 @@ export default function StaffDirectionsPage() {
         {
           direction_id: slotDirectionId ? Number(slotDirectionId) : null,
           date: slotDate,
-          time_from: slotTimeFrom || null,
-          time_to: slotTimeTo || null,
+          time_from: null,
+          time_to: null,
           active: true,
         },
         { credentials: "include" },
       );
       setSlotDate("");
       setSlotDirectionId("");
-      setSlotTimeFrom("");
-      setSlotTimeTo("");
       await load();
     } catch (e) {
       setError(String(e));
@@ -171,14 +167,6 @@ export default function StaffDirectionsPage() {
           <div>
             <label>Дата доставки (слот)</label>
             <input className="input" type="date" value={slotDate} onChange={(e) => setSlotDate(e.target.value)} />
-          </div>
-          <div>
-            <label>Время с</label>
-            <input className="input" type="time" value={slotTimeFrom} onChange={(e) => setSlotTimeFrom(e.target.value)} />
-          </div>
-          <div>
-            <label>Время по</label>
-            <input className="input" type="time" value={slotTimeTo} onChange={(e) => setSlotTimeTo(e.target.value)} />
           </div>
         </div>
         <button className="btn" onClick={createSlot}>Добавить слот</button>

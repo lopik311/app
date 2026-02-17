@@ -65,6 +65,7 @@ def request_detail(request_id: int, db: Session = Depends(get_db), _=Depends(get
         "boxes_count": req.boxes_count,
         "weight_kg": float(req.weight_kg),
         "volume_m3": float(req.volume_m3),
+        "comment": req.comment,
         "status": req.status.value,
         "history": [
             {
@@ -95,6 +96,8 @@ async def update_request(
         value = getattr(payload, key)
         if value is not None:
             setattr(req, key, value)
+    if payload.comment is not None:
+        req.comment = payload.comment
 
     if payload.status is not None:
         allowed = {

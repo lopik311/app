@@ -30,6 +30,8 @@ app.include_router(admin_refs.router)
 @app.on_event("startup")
 def startup() -> None:
     Base.metadata.create_all(bind=engine)
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE requests ADD COLUMN IF NOT EXISTS comment TEXT"))
 
 
 @app.get("/health")

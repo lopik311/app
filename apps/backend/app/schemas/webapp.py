@@ -7,3 +7,4 @@ class RequestCreate(BaseModel):
     boxes_count: int = Field(gt=0)
     weight_kg: float = Field(gt=0)
     volume_m3: float = Field(gt=0)
+    comment: str | None = None

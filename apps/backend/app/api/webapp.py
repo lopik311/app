@@ -61,6 +61,12 @@ def my_requests(client: Client = Depends(get_webapp_client), db: Session = Depen
             "request_number": req.request_number,
             "direction": direction.name,
             "delivery_date": str(slot.date),
+            "boxes_count": req.boxes_count,
+            "weight_kg": float(req.weight_kg),
+            "volume_m3": float(req.volume_m3),
+            "telegram_id": client.telegram_id,
+            "username": client.username,
+            "comment": req.comment,
             "status": req.status.value,
             "created_at": req.created_at,
         }
@@ -84,6 +90,7 @@ def create_request(payload: RequestCreate, client: Client = Depends(get_webapp_c
         boxes_count=payload.boxes_count,
         weight_kg=payload.weight_kg,
         volume_m3=payload.volume_m3,
+        comment=payload.comment,
     )
     db.add(req)
     db.flush()
@@ -117,6 +124,9 @@ def request_detail(request_id: int, client: Client = Depends(get_webapp_client),
         "boxes_count": req.boxes_count,
         "weight_kg": float(req.weight_kg),
         "volume_m3": float(req.volume_m3),
+        "comment": req.comment,
+        "telegram_id": client.telegram_id,
+        "username": client.username,
         "status": req.status.value,
         "created_at": req.created_at,
         "history": [

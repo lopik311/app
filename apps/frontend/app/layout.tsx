@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import Link from "next/link";
+
+import { AppShell } from "@/components/app-shell";
 
 export const metadata: Metadata = {
   title: "Mini CRM",
@@ -11,20 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ru">
       <body>
-        <div className="container">
-          <div className="row" style={{ justifyContent: "space-between", marginBottom: 16 }}>
-            <h2 style={{ margin: 0 }}>Mini CRM</h2>
-            <div className="topnav">
-              <Link href="/">Вход</Link>
-              <Link href="/requests">Заявки</Link>
-              <Link href="/price">Прайс</Link>
-              <Link href="/directions">Направления</Link>
-              <Link href="/payments">Оплаты</Link>
-              <Link href="/webapp">WebApp</Link>
-            </div>
-          </div>
-          {children}
-        </div>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

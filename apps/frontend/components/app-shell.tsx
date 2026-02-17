@@ -18,6 +18,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="topnav">
           <Link href="/">Вход</Link>
           <Link href="/requests">Заявки</Link>
+          <Link href="/organizations">Организации</Link>
           <Link href="/price">Прайс</Link>
           <Link href="/directions">Направления</Link>
           <Link href="/payments">Оплаты</Link>

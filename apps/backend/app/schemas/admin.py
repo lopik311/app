@@ -25,3 +25,17 @@ class DirectionIn(BaseModel):
 class DeliverySlotIn(BaseModel):
     direction_id: int | None = None
     date: str
+
+
+class OrganizationIn(BaseModel):
+    client_id: int
+    name: str
+    inn: str | None = None
+    kpp: str | None = None
+    ogrn: str | None = None
+    address: str | None = None
+    settlement_account: str | None = None
+    bik: str | None = None
+    correspondent_account: str | None = None
+    bank: str | None = None
+    director: str | None = None

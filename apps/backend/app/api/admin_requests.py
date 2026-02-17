@@ -6,6 +6,7 @@ from app.db.session import get_db
 from app.models.client import Client
 from app.models.delivery_slot import DeliverySlot
 from app.models.direction import Direction
+from app.models.organization import Organization
 from app.models.request import Request, RequestStatus
 from app.models.request_history import RequestHistory
 from app.schemas.admin import RequestUpdateIn
@@ -24,8 +25,9 @@ def list_requests(
     _=Depends(get_current_manager),
 ):
     query = (
-        db.query(Request, Client, Direction, DeliverySlot)
+        db.query(Request, Client, Direction, DeliverySlot, Organization)
         .join(Client, Client.id == Request.client_id)
+        .outerjoin(Organization, Organization.client_id == Client.id)
         .join(Direction, Direction.id == Request.direction_id)
         .join(DeliverySlot, DeliverySlot.id == Request.delivery_slot_id)
     )
@@ -43,6 +45,7 @@ def list_requests(
             "request_number": req.request_number,
             "telegram_id": client.telegram_id,
             "username": client.username,
+            "organization": org.name if org else None,
             "direction": direction.name,
             "delivery_date": str(slot.date),
             "boxes_count": req.boxes_count,
@@ -50,7 +53,7 @@ def list_requests(
             "weight_kg": float(req.weight_kg),
             "status": req.status.value,
         }
-        for req, client, direction, slot in rows
+        for req, client, direction, slot, org in rows
     ]
 
 

@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from app.api import admin_auth, admin_clients, admin_refs, admin_requests, telegram, webapp
+from app.api import admin_auth, admin_clients, admin_organizations, admin_refs, admin_requests, telegram, webapp
 from app.db.base import Base
 from app.db.session import engine
 
@@ -24,6 +24,7 @@ app.include_router(telegram.router)
 app.include_router(admin_auth.router)
 app.include_router(admin_requests.router)
 app.include_router(admin_clients.router)
+app.include_router(admin_organizations.router)
 app.include_router(admin_refs.router)
 
 

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -42,10 +42,16 @@ export default function StaffDirectionsPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    if (!slotDirectionId && directions.length > 0) {
+      setSlotDirectionId(String(directions[0].id));
+    }
+  }, [directions, slotDirectionId]);
+
   async function createDirection() {
     try {
       if (!name.trim()) {
-        setError("Введите название направления.");
+        setError("Р’РІРµРґРёС‚Рµ РЅР°Р·РІР°РЅРёРµ РЅР°РїСЂР°РІР»РµРЅРёСЏ.");
         return;
       }
       await apiSend("/api/admin/directions", "POST", { name: name.trim() }, { credentials: "include" });
@@ -58,8 +64,12 @@ export default function StaffDirectionsPage() {
 
   async function createSlot() {
     try {
+      if (!slotDirectionId) {
+        setError("Выберите направление.");
+        return;
+      }
       if (!slotDate) {
-        setError("Выберите дату доставки.");
+        setError("Р’С‹Р±РµСЂРёС‚Рµ РґР°С‚Сѓ РґРѕСЃС‚Р°РІРєРё.");
         return;
       }
       setError("");
@@ -73,7 +83,9 @@ export default function StaffDirectionsPage() {
         { credentials: "include" },
       );
       setSlotDate("");
-      setSlotDirectionId("");
+      if (directions.length > 0) {
+        setSlotDirectionId(String(directions[0].id));
+      }
       await load();
     } catch (e) {
       setError(String(e));
@@ -97,8 +109,8 @@ export default function StaffDirectionsPage() {
   const sortedSlots = useMemo(() => {
     const arr = [...slots];
     arr.sort((a, b) => {
-      const aDirection = a.direction_id ? directionMap.get(a.direction_id) || `ID ${a.direction_id}` : "Без привязки";
-      const bDirection = b.direction_id ? directionMap.get(b.direction_id) || `ID ${b.direction_id}` : "Без привязки";
+      const aDirection = a.direction_id ? directionMap.get(a.direction_id) || `ID ${a.direction_id}` : "Р‘РµР· РїСЂРёРІСЏР·РєРё";
+      const bDirection = b.direction_id ? directionMap.get(b.direction_id) || `ID ${b.direction_id}` : "Р‘РµР· РїСЂРёРІСЏР·РєРё";
       if (slotSort === "direction_asc") return aDirection.localeCompare(bDirection, "ru");
       if (slotSort === "direction_desc") return bDirection.localeCompare(aDirection, "ru");
       if (slotSort === "date_asc") return a.date.localeCompare(b.date);
@@ -126,16 +138,15 @@ export default function StaffDirectionsPage() {
 
   return (
     <div className="grid">
-      <h3 style={{ margin: 0 }}>Справочник напрвлений</h3>
+      <h3 style={{ margin: 0 }}>РЎРїСЂР°РІРѕС‡РЅРёРє РЅР°РїСЂРІР»РµРЅРёР№</h3>
       {error ? <div className="card" style={{ color: "var(--danger)" }}>{error}</div> : null}
 
       <div className="card grid">
-        <h4 style={{ margin: 0 }}>Добавить слот доставки</h4>
+        <h4 style={{ margin: 0 }}>Р”РѕР±Р°РІРёС‚СЊ СЃР»РѕС‚ РґРѕСЃС‚Р°РІРєРё</h4>
         <div className="row" style={{ width: "100%", alignItems: "end" }}>
           <div style={{ width: "40%" }}>
-            <label>Направление</label>
+            <label>РќР°РїСЂР°РІР»РµРЅРёРµ</label>
             <select className="select" value={slotDirectionId} onChange={(e) => setSlotDirectionId(e.target.value)}>
-              <option value="">Без привязки</option>
               {directions.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.name}
@@ -144,11 +155,11 @@ export default function StaffDirectionsPage() {
             </select>
           </div>
           <div style={{ width: "40%" }}>
-            <label>Дата доставки (слот)</label>
+            <label>Р”Р°С‚Р° РґРѕСЃС‚Р°РІРєРё (СЃР»РѕС‚)</label>
             <input className="input" type="date" value={slotDate} onChange={(e) => setSlotDate(e.target.value)} />
           </div>
           <div style={{ width: "15%" }}>
-            <button className="btn" style={{ width: "100%" }} onClick={createSlot}>Добавить слот</button>
+            <button className="btn" style={{ width: "100%" }} onClick={createSlot}>Р”РѕР±Р°РІРёС‚СЊ СЃР»РѕС‚</button>
           </div>
         </div>
       </div>
@@ -159,24 +170,24 @@ export default function StaffDirectionsPage() {
             <TableRow>
               <TableHead>ID</TableHead>
               <TableHead>
-                Направление
-                <button style={sortButtonStyle} onClick={toggleDirectionSort}>↓↑</button>
+                РќР°РїСЂР°РІР»РµРЅРёРµ
+                <button style={sortButtonStyle} onClick={toggleDirectionSort}>в†“в†‘</button>
               </TableHead>
               <TableHead>
-                Дата доставки
-                <button style={sortButtonStyle} onClick={toggleDateSort}>↓↑</button>
+                Р”Р°С‚Р° РґРѕСЃС‚Р°РІРєРё
+                <button style={sortButtonStyle} onClick={toggleDateSort}>в†“в†‘</button>
               </TableHead>
-              <TableHead>Удалить</TableHead>
+              <TableHead>РЈРґР°Р»РёС‚СЊ</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sortedSlots.map((s) => (
               <TableRow key={s.id}>
                 <TableCell>{s.id}</TableCell>
-                <TableCell>{s.direction_id ? directionMap.get(s.direction_id) || `ID ${s.direction_id}` : "Без привязки"}</TableCell>
+                <TableCell>{s.direction_id ? directionMap.get(s.direction_id) || `ID ${s.direction_id}` : "Р‘РµР· РїСЂРёРІСЏР·РєРё"}</TableCell>
                 <TableCell>{s.date}</TableCell>
                 <TableCell>
-                  <button className="btn secondary" onClick={() => deleteSlot(s.id)}>Удалить</button>
+                  <button className="btn secondary" onClick={() => deleteSlot(s.id)}>РЈРґР°Р»РёС‚СЊ</button>
                 </TableCell>
               </TableRow>
             ))}
@@ -185,10 +196,10 @@ export default function StaffDirectionsPage() {
       </div>
 
       <div className="card grid">
-        <h4 style={{ margin: 0 }}>Добавить направление</h4>
+        <h4 style={{ margin: 0 }}>Р”РѕР±Р°РІРёС‚СЊ РЅР°РїСЂР°РІР»РµРЅРёРµ</h4>
         <div className="row">
-          <input className="input" style={{ maxWidth: 360 }} placeholder="Новое направление" value={name} onChange={(e) => setName(e.target.value)} />
-          <button className="btn" onClick={createDirection}>Добавить</button>
+          <input className="input" style={{ maxWidth: 360 }} placeholder="РќРѕРІРѕРµ РЅР°РїСЂР°РІР»РµРЅРёРµ" value={name} onChange={(e) => setName(e.target.value)} />
+          <button className="btn" onClick={createDirection}>Р”РѕР±Р°РІРёС‚СЊ</button>
         </div>
       </div>
 
@@ -197,7 +208,7 @@ export default function StaffDirectionsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>ID</TableHead>
-              <TableHead>Название</TableHead>
+              <TableHead>РќР°Р·РІР°РЅРёРµ</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -213,3 +224,4 @@ export default function StaffDirectionsPage() {
     </div>
   );
 }
+

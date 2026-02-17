@@ -21,4 +21,5 @@ class Organization(Base):
     correspondent_account: Mapped[str | None] = mapped_column(String(64), nullable=True)
     bank: Mapped[str | None] = mapped_column(String(255), nullable=True)
     director: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    contract: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)

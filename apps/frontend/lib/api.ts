@@ -1,5 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 export async function apiGet(path: string, opts: RequestInit = {}) {
   const res = await fetch(`${API_URL}${path}`, { ...opts, cache: "no-store" });
   if (!res.ok) {

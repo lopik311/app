@@ -32,6 +32,9 @@ def startup() -> None:
     Base.metadata.create_all(bind=engine)
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE requests ADD COLUMN IF NOT EXISTS comment TEXT"))
+        if engine.dialect.name == "postgresql":
+            for value in ["NEW", "WAREHOUSE", "SHIPPED", "DELIVERED", "PAID"]:
+                conn.execute(text(f"ALTER TYPE requeststatus ADD VALUE IF NOT EXISTS '{value}'"))
 
 
 @app.get("/health")

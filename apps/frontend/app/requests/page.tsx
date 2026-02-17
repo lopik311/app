@@ -14,6 +14,9 @@ type RequestRow = {
   username: string;
   direction: string;
   delivery_date: string;
+  boxes_count: number;
+  volume_m3: number;
+  weight_kg: number;
   status: string;
 };
 
@@ -25,9 +28,22 @@ type RequestDetail = {
   boxes_count: number;
   weight_kg: number;
   volume_m3: number;
+  comment?: string;
   status: string;
   history: Array<{ event_type: string; from_status?: string; to_status?: string; comment?: string; created_at: string }>;
 };
+
+const statusOptions = [
+  { value: "NEW", label: "Новая" },
+  { value: "WAREHOUSE", label: "Склад" },
+  { value: "SHIPPED", label: "Отгружена" },
+  { value: "DELIVERED", label: "Доставлена" },
+  { value: "PAID", label: "Оплачено" },
+];
+
+function statusLabel(status: string) {
+  return statusOptions.find((s) => s.value === status)?.label || status;
+}
 
 export default function StaffRequestsPage() {
   const [rows, setRows] = useState<RequestRow[]>([]);
@@ -77,40 +93,50 @@ export default function StaffRequestsPage() {
 
   return (
     <div className="grid">
-      <h3 style={{ margin: 0 }}>Заявки (все)</h3>
+      <h3 style={{ margin: 0 }}>Заявки</h3>
       <div className="card row">
         <input className="input" style={{ maxWidth: 280 }} placeholder="telegram_id или @username" value={q} onChange={(e) => setQ(e.target.value)} />
         <select className="select" style={{ maxWidth: 220 }} value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="">Все статусы</option>
-          <option value="OPEN">OPEN</option>
-          <option value="IN_PROGRESS">IN_PROGRESS</option>
-          <option value="DONE">DONE</option>
+          {statusOptions.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
         </select>
         <button className="btn" onClick={load}>
           Применить
         </button>
       </div>
+
       {error ? <div className="card" style={{ color: "var(--danger)" }}>{error}</div> : null}
+
       <div className="card table-wrap">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>#</TableHead>
+              <TableHead>Номер</TableHead>
               <TableHead>Клиент</TableHead>
               <TableHead>Направление</TableHead>
-              <TableHead>Дата</TableHead>
+              <TableHead>Дата выгрузки</TableHead>
+              <TableHead>Количество</TableHead>
+              <TableHead>Объем</TableHead>
+              <TableHead>Вес</TableHead>
               <TableHead>Статус</TableHead>
-              <TableHead>Действия</TableHead>
+              <TableHead>Действие</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.map((r) => (
               <TableRow key={r.id}>
                 <TableCell>{r.request_number}</TableCell>
-                <TableCell>{r.telegram_id} / @{r.username}</TableCell>
+                <TableCell>{r.telegram_id} / @{r.username || "-"}</TableCell>
                 <TableCell>{r.direction}</TableCell>
                 <TableCell>{r.delivery_date}</TableCell>
-                <TableCell><Badge>{r.status}</Badge></TableCell>
+                <TableCell>{r.boxes_count}</TableCell>
+                <TableCell>{r.volume_m3}</TableCell>
+                <TableCell>{r.weight_kg}</TableCell>
+                <TableCell><Badge>{statusLabel(r.status)}</Badge></TableCell>
                 <TableCell>
                   <button className="btn secondary" onClick={() => openDialog(r.id)}>
                     Открыть
@@ -128,15 +154,7 @@ export default function StaffRequestsPage() {
             <h3 style={{ margin: 0 }}>Заявка #{selected.request_number}</h3>
             <div className="grid grid-2">
               <div>
-                <label>Статус</label>
-                <select className="select" value={selected.status} onChange={(e) => setSelected({ ...selected, status: e.target.value })}>
-                  <option value="OPEN">OPEN</option>
-                  <option value="IN_PROGRESS">IN_PROGRESS</option>
-                  <option value="DONE">DONE</option>
-                </select>
-              </div>
-              <div>
-                <label>Короба</label>
+                <label>Кол-во</label>
                 <input className="input" value={selected.boxes_count} onChange={(e) => setSelected({ ...selected, boxes_count: Number(e.target.value) })} />
               </div>
               <div>
@@ -148,16 +166,33 @@ export default function StaffRequestsPage() {
                 <input className="input" value={selected.volume_m3} onChange={(e) => setSelected({ ...selected, volume_m3: Number(e.target.value) })} />
               </div>
             </div>
-            <div className="row">
-              <button className="btn" onClick={save}>Сохранить</button>
+
+            <div>
+              <label>Комментарий</label>
+              <textarea className="input" rows={3} value={selected.comment || ""} onChange={(e) => setSelected({ ...selected, comment: e.target.value })} />
+            </div>
+
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <div className="row">
+                <label>Статус</label>
+                <select className="select" style={{ width: 220 }} value={selected.status} onChange={(e) => setSelected({ ...selected, status: e.target.value })}>
+                  {statusOptions.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+                <button className="btn" onClick={save}>Сохранить</button>
+              </div>
               <button className="btn secondary" onClick={() => setOpen(false)}>Закрыть</button>
             </div>
+
             <div className="card">
               <h4 style={{ marginTop: 0 }}>История</h4>
               {selected.history.map((h, i) => (
-                <div key={i} style={{ borderBottom: "1px solid var(--border)", padding: "8px 0" }}>
+                <div key={i} style={{ borderBottom: "1px solid var(--border)", padding: "8px 0", fontSize: "11px" }}>
                   <b>{h.event_type}</b> {h.from_status ? `${h.from_status} -> ${h.to_status}` : ""}
-                  <div>{h.comment}</div>
+                  <div>{h.comment || ""}</div>
                   <small>{new Date(h.created_at).toLocaleString()}</small>
                 </div>
               ))}

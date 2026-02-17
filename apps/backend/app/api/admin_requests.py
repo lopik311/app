@@ -45,6 +45,9 @@ def list_requests(
             "username": client.username,
             "direction": direction.name,
             "delivery_date": str(slot.date),
+            "boxes_count": req.boxes_count,
+            "volume_m3": float(req.volume_m3),
+            "weight_kg": float(req.weight_kg),
             "status": req.status.value,
         }
         for req, client, direction, slot in rows
@@ -101,9 +104,14 @@ async def update_request(
 
     if payload.status is not None:
         allowed = {
-            RequestStatus.OPEN: {RequestStatus.IN_PROGRESS},
-            RequestStatus.IN_PROGRESS: {RequestStatus.OPEN, RequestStatus.DONE},
-            RequestStatus.DONE: set(),
+            RequestStatus.NEW: {RequestStatus.WAREHOUSE},
+            RequestStatus.WAREHOUSE: {RequestStatus.SHIPPED},
+            RequestStatus.SHIPPED: {RequestStatus.DELIVERED},
+            RequestStatus.DELIVERED: {RequestStatus.PAID},
+            RequestStatus.PAID: set(),
+            RequestStatus.OPEN: {RequestStatus.IN_PROGRESS, RequestStatus.WAREHOUSE},
+            RequestStatus.IN_PROGRESS: {RequestStatus.OPEN, RequestStatus.DONE, RequestStatus.SHIPPED},
+            RequestStatus.DONE: {RequestStatus.PAID},
         }
         if payload.status != req.status and payload.status not in allowed[req.status]:
             raise HTTPException(status_code=400, detail="invalid status transition")

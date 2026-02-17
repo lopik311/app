@@ -8,6 +8,11 @@ from app.db.base import Base
 
 
 class RequestStatus(str, enum.Enum):
+    NEW = "NEW"
+    WAREHOUSE = "WAREHOUSE"
+    SHIPPED = "SHIPPED"
+    DELIVERED = "DELIVERED"
+    PAID = "PAID"
     OPEN = "OPEN"
     IN_PROGRESS = "IN_PROGRESS"
     DONE = "DONE"
@@ -25,6 +30,6 @@ class Request(Base):
     weight_kg: Mapped[float] = mapped_column(Numeric(10, 2))
     volume_m3: Mapped[float] = mapped_column(Numeric(10, 2))
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
-    status: Mapped[RequestStatus] = mapped_column(Enum(RequestStatus), default=RequestStatus.OPEN, index=True)
+    status: Mapped[RequestStatus] = mapped_column(Enum(RequestStatus), default=RequestStatus.NEW, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, index=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -13,7 +13,7 @@ export function TableBody({ children }: { children: React.ReactNode }) {
 }
 
 export function TableRow({ children }: { children: React.ReactNode }) {
-  return <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">{children}</tr>;
+  return <tr className="border-b transition-colors hover:bg-[#eef3f7] data-[state=selected]:bg-[#eef3f7]">{children}</tr>;
 }
 
 export function TableHead({ children }: { children: React.ReactNode }) {

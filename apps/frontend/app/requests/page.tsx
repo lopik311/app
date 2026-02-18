@@ -7,6 +7,8 @@ import { Dialog } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { apiGet, apiSend } from "@/lib/api";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+
 type RequestRow = {
   id: number;
   request_number: number;
@@ -91,6 +93,32 @@ export default function StaffRequestsPage() {
     }
   }
 
+  async function downloadInvoice(row: RequestRow) {
+    try {
+      setError("");
+      const res = await fetch(`${API_URL}/api/admin/requests/${row.id}/invoice.pdf`, {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`GET /api/admin/requests/${row.id}/invoice.pdf failed: ${res.status} ${txt}`);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `invoice-${row.request_number}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setError(String(e));
+    }
+  }
+
   return (
     <div className="grid">
       <h3 style={{ margin: 0 }}>Заявки</h3>
@@ -139,9 +167,12 @@ export default function StaffRequestsPage() {
                 <TableCell><div style={{ textAlign: "center" }}>{r.volume_m3}</div></TableCell>
                 <TableCell><div style={{ textAlign: "center" }}>{r.weight_kg}</div></TableCell>
                 <TableCell><div style={{ textAlign: "center" }}><Badge>{statusLabel(r.status)}</Badge></div></TableCell>
-                <TableCell><div style={{ textAlign: "center" }}>
-                  <button className="btn secondary" onClick={() => openDialog(r.id)}>Открыть</button>
-                </div></TableCell>
+                <TableCell>
+                  <div style={{ textAlign: "center" }}>
+                    <button className="btn secondary" onClick={() => openDialog(r.id)}>Открыть</button>
+                    <button className="btn" style={{ marginLeft: 8 }} onClick={() => downloadInvoice(r)}>Счет PDF</button>
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

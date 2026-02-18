@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import String, cast
 from sqlalchemy.orm import Session
 
@@ -11,6 +11,7 @@ from app.models.request import Request, RequestStatus
 from app.models.request_history import RequestHistory
 from app.schemas.admin import RequestUpdateIn
 from app.services.auth import get_current_manager
+from app.services.invoice_pdf import build_request_invoice_pdf
 from app.services.telegram import send_telegram_message
 
 router = APIRouter(prefix="/api/admin/requests", tags=["admin-requests"])
@@ -84,6 +85,34 @@ def request_detail(request_id: int, db: Session = Depends(get_db), _=Depends(get
             for h in history
         ],
     }
+
+
+@router.get("/{request_id}/invoice.pdf")
+def request_invoice_pdf(
+    request_id: int,
+    db: Session = Depends(get_db),
+    _=Depends(get_current_manager),
+):
+    row = (
+        db.query(Request, Client, Direction, DeliverySlot, Organization)
+        .join(Client, Client.id == Request.client_id)
+        .join(Direction, Direction.id == Request.direction_id)
+        .join(DeliverySlot, DeliverySlot.id == Request.delivery_slot_id)
+        .outerjoin(Organization, Organization.client_id == Client.id)
+        .filter(Request.id == request_id)
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="not found")
+
+    req, client, direction, slot, org = row
+    pdf_content = build_request_invoice_pdf(req, client, direction, slot, org)
+    filename = f"invoice-request-{req.request_number}.pdf"
+    return Response(
+        content=pdf_content,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.patch("/{request_id}")
